@@ -1,0 +1,444 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "78dab71a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as nm  \n",
+    "import matplotlib.pyplot as mtp  \n",
+    "import pandas as pd\n",
+    "import os"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "b6c7462a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# May be needed for preprocessing, import as needed\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.preprocessing import StandardScaler"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e6356c9c",
+   "metadata": {},
+   "source": [
+    "## Data pre-processing"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "6b46cb56",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Read each CSV file into dataframes\n",
+    "bans = pd.read_csv('kaggle_dataset/bans.csv')\n",
+    "kills = pd.read_csv('kaggle_dataset/kills.csv')\n",
+    "matchinfo = pd.read_csv('kaggle_dataset/matchinfo.csv')\n",
+    "_columns = pd.read_csv('kaggle_dataset/_columns.csv')\n",
+    "structures = pd.read_csv('kaggle_dataset/structures.csv')\n",
+    "gold = pd.read_csv('kaggle_dataset/gold.csv')\n",
+    "monsters = pd.read_csv('kaggle_dataset/monsters.csv')\n",
+    "LeagueofLegends = pd.read_csv('kaggle_dataset/LeagueofLegends.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "a289c138",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>League</th>\n",
+       "      <th>Year</th>\n",
+       "      <th>Season</th>\n",
+       "      <th>Type</th>\n",
+       "      <th>blueTeamTag</th>\n",
+       "      <th>bResult</th>\n",
+       "      <th>rResult</th>\n",
+       "      <th>redTeamTag</th>\n",
+       "      <th>gamelength</th>\n",
+       "      <th>blueTop</th>\n",
+       "      <th>...</th>\n",
+       "      <th>redTopChamp</th>\n",
+       "      <th>redJungle</th>\n",
+       "      <th>redJungleChamp</th>\n",
+       "      <th>redMiddle</th>\n",
+       "      <th>redMiddleChamp</th>\n",
+       "      <th>redADC</th>\n",
+       "      <th>redADCChamp</th>\n",
+       "      <th>redSupport</th>\n",
+       "      <th>redSupportChamp</th>\n",
+       "      <th>Address</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>NALCS</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>Spring</td>\n",
+       "      <td>Season</td>\n",
+       "      <td>TSM</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>C9</td>\n",
+       "      <td>40</td>\n",
+       "      <td>Dyrus</td>\n",
+       "      <td>...</td>\n",
+       "      <td>Gnar</td>\n",
+       "      <td>Meteos</td>\n",
+       "      <td>Elise</td>\n",
+       "      <td>Hai</td>\n",
+       "      <td>Fizz</td>\n",
+       "      <td>Sneaky</td>\n",
+       "      <td>Sivir</td>\n",
+       "      <td>LemonNation</td>\n",
+       "      <td>Thresh</td>\n",
+       "      <td>http://matchhistory.na.leagueoflegends.com/en/...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>NALCS</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>Spring</td>\n",
+       "      <td>Season</td>\n",
+       "      <td>CST</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>DIG</td>\n",
+       "      <td>38</td>\n",
+       "      <td>Cris</td>\n",
+       "      <td>...</td>\n",
+       "      <td>Irelia</td>\n",
+       "      <td>Crumbzz</td>\n",
+       "      <td>JarvanIV</td>\n",
+       "      <td>Shiphtur</td>\n",
+       "      <td>Azir</td>\n",
+       "      <td>CoreJJ</td>\n",
+       "      <td>Corki</td>\n",
+       "      <td>KiWiKiD</td>\n",
+       "      <td>Annie</td>\n",
+       "      <td>http://matchhistory.na.leagueoflegends.com/en/...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>NALCS</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>Spring</td>\n",
+       "      <td>Season</td>\n",
+       "      <td>WFX</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>GV</td>\n",
+       "      <td>40</td>\n",
+       "      <td>Flaresz</td>\n",
+       "      <td>...</td>\n",
+       "      <td>Sion</td>\n",
+       "      <td>Saintvicious</td>\n",
+       "      <td>LeeSin</td>\n",
+       "      <td>Keane</td>\n",
+       "      <td>Azir</td>\n",
+       "      <td>Cop</td>\n",
+       "      <td>Corki</td>\n",
+       "      <td>BunnyFuFuu</td>\n",
+       "      <td>Janna</td>\n",
+       "      <td>http://matchhistory.na.leagueoflegends.com/en/...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>NALCS</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>Spring</td>\n",
+       "      <td>Season</td>\n",
+       "      <td>TIP</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>TL</td>\n",
+       "      <td>41</td>\n",
+       "      <td>Rhux</td>\n",
+       "      <td>...</td>\n",
+       "      <td>Gnar</td>\n",
+       "      <td>IWDominate</td>\n",
+       "      <td>Nunu</td>\n",
+       "      <td>Fenix</td>\n",
+       "      <td>Lulu</td>\n",
+       "      <td>KEITH</td>\n",
+       "      <td>KogMaw</td>\n",
+       "      <td>Xpecial</td>\n",
+       "      <td>Janna</td>\n",
+       "      <td>http://matchhistory.na.leagueoflegends.com/en/...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>NALCS</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>Spring</td>\n",
+       "      <td>Season</td>\n",
+       "      <td>CLG</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>T8</td>\n",
+       "      <td>35</td>\n",
+       "      <td>Benny</td>\n",
+       "      <td>...</td>\n",
+       "      <td>Sion</td>\n",
+       "      <td>Porpoise8</td>\n",
+       "      <td>RekSai</td>\n",
+       "      <td>Slooshi8</td>\n",
+       "      <td>Lulu</td>\n",
+       "      <td>Maplestreet8</td>\n",
+       "      <td>Corki</td>\n",
+       "      <td>Dodo8</td>\n",
+       "      <td>Annie</td>\n",
+       "      <td>http://matchhistory.na.leagueoflegends.com/en/...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 30 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  League  Year  Season    Type blueTeamTag  bResult  rResult redTeamTag  \\\n",
+       "0  NALCS  2015  Spring  Season         TSM        1        0         C9   \n",
+       "1  NALCS  2015  Spring  Season         CST        0        1        DIG   \n",
+       "2  NALCS  2015  Spring  Season         WFX        1        0         GV   \n",
+       "3  NALCS  2015  Spring  Season         TIP        0        1         TL   \n",
+       "4  NALCS  2015  Spring  Season         CLG        1        0         T8   \n",
+       "\n",
+       "   gamelength  blueTop  ... redTopChamp     redJungle redJungleChamp  \\\n",
+       "0          40    Dyrus  ...        Gnar        Meteos          Elise   \n",
+       "1          38     Cris  ...      Irelia       Crumbzz       JarvanIV   \n",
+       "2          40  Flaresz  ...        Sion  Saintvicious         LeeSin   \n",
+       "3          41     Rhux  ...        Gnar    IWDominate           Nunu   \n",
+       "4          35    Benny  ...        Sion     Porpoise8         RekSai   \n",
+       "\n",
+       "  redMiddle redMiddleChamp        redADC redADCChamp   redSupport  \\\n",
+       "0       Hai           Fizz        Sneaky       Sivir  LemonNation   \n",
+       "1  Shiphtur           Azir        CoreJJ       Corki      KiWiKiD   \n",
+       "2     Keane           Azir           Cop       Corki   BunnyFuFuu   \n",
+       "3     Fenix           Lulu         KEITH      KogMaw      Xpecial   \n",
+       "4  Slooshi8           Lulu  Maplestreet8       Corki        Dodo8   \n",
+       "\n",
+       "  redSupportChamp                                            Address  \n",
+       "0          Thresh  http://matchhistory.na.leagueoflegends.com/en/...  \n",
+       "1           Annie  http://matchhistory.na.leagueoflegends.com/en/...  \n",
+       "2           Janna  http://matchhistory.na.leagueoflegends.com/en/...  \n",
+       "3           Janna  http://matchhistory.na.leagueoflegends.com/en/...  \n",
+       "4           Annie  http://matchhistory.na.leagueoflegends.com/en/...  \n",
+       "\n",
+       "[5 rows x 30 columns]"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "matchinfo.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "bd1f7a5a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Preprocessing is roughly done, will need to do more in detail"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8d9c7ae5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Extract independent and dependent variables\n",
+    "# "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b1ac296c",
+   "metadata": {},
+   "source": [
+    "## Data Visualization"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "21bc7bce",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# optional\n",
+    "# Visualize feature distribution\n",
+    "# Understand general outline of metrics - range, spread / skewness, outliners (imp), or zeros to drop"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "489d8bc4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "\n",
+    "      \n",
+    "\n",
+    "Hypothesis Testing: \n",
+    "    \n",
+    "    Perform statistical tests, such as t-tests or ANOVA, to compare the means or distributions of certain features between the winning and losing teams. This can help you identify significant differences between the two groups."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d3d19767",
+   "metadata": {},
+   "source": [
+    "## Feature Analysis / Cross-tabulation "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e9ea19ac",
+   "metadata": {},
+   "source": [
+    "* maybe not be useful, but just an idea to organize dataset <br>\n",
+    "\n",
+    "Creating analysis / contingency tables between \n",
+    "categorical features (champ ban/pick, objective control, kda/objective score,etc) and target variable (win/loss)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "3588fe61",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Splitting the dataset into training and test set\n",
+    "# train_test_split"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "c8e65fa3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Feature scaling\n",
+    "# StandarScaler or other method may be used"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0f92ce14",
+   "metadata": {},
+   "source": [
+    "### Fit classifier to training set (example - can be model selection step here)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "57663b50",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Think of which model to use\n",
+    "# Can use svm / k-fold cv \n",
+    "    ## if k-fold, can use larger vals since we have >> dataset\n",
+    "\n",
+    "# random forest / gradient boosting (soft/hard/) \n",
+    "# PCA "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "640be6e4",
+   "metadata": {},
+   "source": [
+    "## Results / Analysis (can be separated)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "a5d21141",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# .summary can be used here and analysis + explanation\n",
+    "# we might need to compare the results against our own hypothesis, should be discussed in team meeting"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5907d474",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (clean)",
+   "language": "python",
+   "name": "python3_clean"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
